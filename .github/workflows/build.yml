@@ -11,6 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      new_tag: ${{ steps.tag_version.outputs.new_tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -81,9 +83,11 @@ jobs:
           prerelease: false
           make_latest: true
 
-      - name: Deploy formula
-        uses: ./.github/workflows/brew.yml
-        with:
-          version: ${{ steps.tag_version.outputs.new_tag }}
-        secrets:
-          HOMEBREW_TOKEN: ${{ secrets.HOMEBREW_TOKEN }}
+  deploy-formula:
+    needs: build-and-release
+    if: ${{ needs.build-and-release.outputs.new_tag != '' }}
+    uses: ./.github/workflows/brew.yml
+    with:
+      version: ${{ needs.build-and-release.outputs.new_tag }}
+    secrets:
+      HOMEBREW_TOKEN: ${{ secrets.HOMEBREW_TOKEN }}
