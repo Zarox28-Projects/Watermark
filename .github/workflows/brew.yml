@@ -1,0 +1,83 @@
+name: Deploy to Homebrew
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  deploy-formula:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get release tag
+        id: tag
+        run: echo "version=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+
+      - name: Download darwin binaries
+        run: |
+          curl -sL "https://github.com/Zarox28/Watermark/releases/download/${{ steps.tag.outputs.version }}/watermark-darwin-amd64" \
+            -o watermark-darwin-amd64
+          curl -sL "https://github.com/Zarox28/Watermark/releases/download/${{ steps.tag.outputs.version }}/watermark-darwin-arm64" \
+            -o watermark-darwin-arm64
+
+      - name: Compute SHA256
+        id: sha
+        run: |
+          echo "amd64=$(sha256sum watermark-darwin-amd64 | awk '{print $1}')" >> $GITHUB_OUTPUT
+          echo "arm64=$(sha256sum watermark-darwin-arm64 | awk '{print $1}')" >> $GITHUB_OUTPUT
+
+      - name: Checkout tap repo
+        uses: actions/checkout@v6
+        with:
+          repository: Zarox28/homebrew-apps
+          token: ${{ secrets.HOMEBREW_TOKEN }}
+          path: tap
+
+      - name: Write formula
+        run: |
+          VERSION="${{ steps.tag.outputs.version }}"
+          # Strip leading 'v' for the version field
+          VERSION_NUM="${VERSION#v}"
+          SHA_AMD64="${{ steps.sha.outputs.amd64 }}"
+          SHA_ARM64="${{ steps.sha.outputs.arm64 }}"
+
+          mkdir -p tap/Formula
+
+          cat > tap/Formula/watermark.rb <<EOF
+          class Watermark < Formula
+            desc "Interactive CLI tool to add watermarks to images and PDF files"
+            homepage "https://github.com/Zarox28/Watermark"
+            version "${VERSION_NUM}"
+            license "AGPL-3.0-only"
+
+            on_macos do
+              on_intel do
+                url "https://github.com/Zarox28/Watermark/releases/download/${VERSION}/watermark-darwin-amd64"
+                sha256 "${SHA_AMD64}"
+              end
+
+              on_arm do
+                url "https://github.com/Zarox28/Watermark/releases/download/${VERSION}/watermark-darwin-arm64"
+                sha256 "${SHA_ARM64}"
+              end
+            end
+
+            def install
+              binary = Hardware::CPU.intel? ? "watermark-darwin-amd64" : "watermark-darwin-arm64"
+              bin.install binary => "watermark"
+            end
+
+            test do
+              system "#{bin}/watermark", "--help"
+            end
+          end
+          EOF
+
+      - name: Commit and push formula
+        run: |
+          cd tap
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/watermark.rb
+          git commit -m "🍺 watermark ${{ steps.tag.outputs.version }}"
+          git push
