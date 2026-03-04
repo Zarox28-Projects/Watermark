@@ -80,3 +80,10 @@ jobs:
           draft: false
           prerelease: false
           make_latest: true
+
+      - name: Deploy formula
+        uses: ./.github/workflows/brew.yml
+        with:
+          version: ${{ steps.tag_version.outputs.new_tag }}
+        secrets:
+          HOMEBREW_TOKEN: ${{ secrets.HOMEBREW_TOKEN }}

@@ -2,8 +2,14 @@ name: Deploy to Homebrew
 
 on:
   workflow_dispatch:
-  release:
-    types: [published]
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+    secrets:
+      HOMEBREW_TOKEN:
+        required: true
 
 jobs:
   deploy-formula:
@@ -11,7 +17,7 @@ jobs:
     steps:
       - name: Get release tag
         id: tag
-        run: echo "version=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+        run: echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
 
       - name: Download darwin binaries
         run: |
@@ -73,11 +79,72 @@ jobs:
           end
           EOF
 
+      - name: Update README
+        run: |
+          cd tap
+
+          # Collect all formulae
+          FORMULAE_LIST=""
+          if [ -d "Formula" ]; then
+            for file in Formula/*.rb; do
+              [ -f "$file" ] || continue
+              name=$(basename "$file" .rb)
+              desc=$(grep -m1 'desc ' "$file" | sed 's/.*desc "\(.*\)"/\1/')
+              FORMULAE_LIST="${FORMULAE_LIST}- \`${name}\`: ${desc}\n"
+            done
+          fi
+
+          # Collect all casks
+          CASKS_LIST=""
+          if [ -d "Casks" ]; then
+            for file in Casks/*.rb; do
+              [ -f "$file" ] || continue
+              name=$(basename "$file" .rb)
+              desc=$(grep -m1 'desc ' "$file" | sed 's/.*desc "\(.*\)"/\1/')
+              CASKS_LIST="${CASKS_LIST}- \`${name}\`: ${desc}\n"
+            done
+          fi
+
+          # Rebuild the README
+          cat > README.md <<EOF
+          # Homebrew Tap for [Zarox28](http://github.com/Zarox28)
+          Welcome to the Homebrew tap for **Zarox28**!
+          This repository provides additional formulae for Homebrew, the package manager for macOS and Linux.
+
+          ## Installation
+          To use this tap, you need to add it to your Homebrew configuration. You can do this with the following command:
+          \`\`\`sh
+          brew tap zarox28/apps
+          \`\`\`
+
+          ## Available Formulae
+          Here is a list of the formulae available in this tap:
+
+          $(echo -e "$FORMULAE_LIST")
+          ## Available Casks
+          Here is a list of the casks available in this tap:
+
+          $(echo -e "$CASKS_LIST")
+          To install from this tap, use:
+          \`\`\`sh
+          brew install zarox28/apps/<formula>
+          \`\`\`
+          Replace \`<formula>\` with the name of the formula or cask you want to install.
+
+          ## Issues
+          If you encounter any issues or have questions, please open an issue on this repository. I will do my best to help you out!
+
+          ## Author
+          This tap is maintained by [Zarox28](http://github.com/Zarox28).
+
+          Happy brewing!
+          EOF
+
       - name: Commit and push formula
         run: |
           cd tap
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add Formula/watermark.rb
+          git add Formula/watermark.rb README.md
           git commit -m "🍺 watermark ${{ steps.tag.outputs.version }}"
           git push
