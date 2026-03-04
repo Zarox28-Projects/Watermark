@@ -10,6 +10,7 @@
 
 - [About](#about)
 - [Installation](#installation)
+  - [Homebrew](#homebrew)
   - [Prerequisites](#prerequisites)
   - [Build from Source](#build-from-source)
 - [Usage](#usage)
@@ -21,6 +22,12 @@
 Watermark is an interactive command-line tool that simplifies the addition of watermarks to images and PDF files.
 
 ## Installation
+
+### Homebrew
+
+```bash
+brew install zarox28/tap/watermark
+```
 
 ### Prerequisites
 
