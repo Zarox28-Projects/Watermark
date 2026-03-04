@@ -1,0 +1,25 @@
+version: 2
+
+updates:
+  # Update GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: develop
+    schedule:
+      interval: "weekly"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # Update Go Modules
+  - package-ecosystem: "gomod"
+    directory: "/"
+    target-branch: develop
+    schedule:
+      interval: "weekly"
+    groups:
+      go-dependencies:
+        update-types:
+          - "minor"
+          - "patch"
