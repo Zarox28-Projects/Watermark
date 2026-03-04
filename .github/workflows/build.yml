@@ -7,8 +7,10 @@ on:
       - main
 
 jobs:
-  release:
+  build-and-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -23,17 +25,31 @@ jobs:
 
       - name: Build binaries
         run: |
+          echo "Creating build directory..."
+          mkdir -p ./build
+
           # Linux x64
+          echo "Building for Linux x64..."
           GOOS=linux GOARCH=amd64 go build -o ./build/watermark-linux-amd64 .
+          echo "✓ Linux x64 build complete"
 
           # Linux ARM64
+          echo "Building for Linux ARM64..."
           GOOS=linux GOARCH=arm64 go build -o ./build/watermark-linux-arm64 .
+          echo "✓ Linux ARM64 build complete"
 
           # macOS x64
+          echo "Building for macOS x64..."
           GOOS=darwin GOARCH=amd64 go build -o ./build/watermark-darwin-amd64 .
+          echo "✓ macOS x64 build complete"
 
           # macOS ARM64
+          echo "Building for macOS ARM64..."
           GOOS=darwin GOARCH=arm64 go build -o ./build/watermark-darwin-arm64 .
+          echo "✓ macOS ARM64 build complete"
+
+          echo "All builds completed successfully!"
+          ls -la ./build/
 
       - name: Bump version and push tag
         id: tag_version
