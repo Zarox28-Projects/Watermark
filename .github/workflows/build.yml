@@ -64,7 +64,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.tag_version.outputs.new_tag }}
-          name: Proxmox Updater API (${{ steps.tag_version.outputs.new_tag }})
+          name: Watermark (${{ steps.tag_version.outputs.new_tag }})
           body: |
             Release **${{ steps.tag_version.outputs.new_tag }}**
 
