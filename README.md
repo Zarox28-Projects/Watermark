@@ -12,7 +12,6 @@
 - [Installation](#installation)
   - [Homebrew](#homebrew)
   - [Build from Source](#build-from-source)
-    - [Prerequisites](#prerequisites)
 - [Usage](#usage)
   - [Command Line Options](#command-line-options)
 - [License](#license)
@@ -30,10 +29,6 @@ brew install zarox28/tap/watermark
 ```
 
 ### Build from Source
-
-#### Prerequisites
-
-- Go 1.21.0 or higher
 
 1. Clone the repository:
 
