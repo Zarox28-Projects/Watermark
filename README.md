@@ -11,8 +11,8 @@
 - [About](#about)
 - [Installation](#installation)
   - [Homebrew](#homebrew)
-  - [Prerequisites](#prerequisites)
   - [Build from Source](#build-from-source)
+    - [Prerequisites](#prerequisites)
 - [Usage](#usage)
   - [Command Line Options](#command-line-options)
 - [License](#license)
@@ -29,11 +29,11 @@ Watermark is an interactive command-line tool that simplifies the addition of wa
 brew install zarox28/tap/watermark
 ```
 
-### Prerequisites
-
-- Go 1.25.0 or higher
-
 ### Build from Source
+
+#### Prerequisites
+
+- Go 1.21.0 or higher
 
 1. Clone the repository:
 
