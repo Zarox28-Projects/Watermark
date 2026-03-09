@@ -11,6 +11,7 @@
 - [About](#about)
 - [Installation](#installation)
   - [Homebrew](#homebrew)
+  - [Binary releases](#binary-releases)
   - [Build from Source](#build-from-source)
 - [Usage](#usage)
   - [Command Line Options](#command-line-options)
@@ -24,29 +25,38 @@ Watermark is an interactive command-line tool that simplifies the addition of wa
 
 ### Homebrew
 
+macOS binaries (amd64 and arm64) are available via the [homebrew-apps tap](https://github.com/Zarox28/homebrew-apps):
+
 ```bash
 brew install zarox28/tap/watermark
 ```
+
+### Binary releases
+
+Pre-built binaries for Linux (amd64 and arm64) and macOS (amd64 and arm64) are available on the [releases page](https://github.com/Zarox28/Watermark/releases).
+
+> **macOS users:** the recommended installation method is via Homebrew (see above).
 
 ### Build from Source
 
 1. Clone the repository:
 
-   ```bash
+```bash
    git clone https://github.com/Zarox28/Watermark.git
    cd Watermark
-   ```
+```
 
 2. Build the application:
 
-   ```bash
+```bash
    go build -o ./build/watermark
-   ```
+```
 
 3. (Optional) Add to your PATH for global access:
-   ```bash
+
+```bash
    sudo cp ./build/watermark /usr/local/bin/
-   ```
+```
 
 ## Usage
 
