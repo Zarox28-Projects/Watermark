@@ -24,11 +24,10 @@ jobs:
         run: echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
 
       - name: Download darwin binaries
-        run: |
-          curl -sL "https://github.com/Zarox28/Watermark/releases/download/${{ steps.tag.outputs.version }}/watermark-darwin-amd64" \
-            -o watermark-darwin-amd64
-          curl -sL "https://github.com/Zarox28/Watermark/releases/download/${{ steps.tag.outputs.version }}/watermark-darwin-arm64" \
-            -o watermark-darwin-arm64
+        uses: actions/download-artifact@v6
+        with:
+          pattern: watermark-darwin-*
+          merge-multiple: true
 
       - name: Compute SHA256
         id: sha
@@ -91,3 +90,12 @@ jobs:
           git add Formula/watermark.rb
           git commit -m "🍺 watermark ${{ steps.tag.outputs.version }}"
           git push
+
+      - name: Delete artifacts
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: |
+            watermark-linux-amd64
+            watermark-linux-arm64
+            watermark-darwin-amd64
+            watermark-darwin-arm64
