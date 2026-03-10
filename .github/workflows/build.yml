@@ -7,12 +7,24 @@ on:
       - main
 
 jobs:
-  build-and-release:
+  Build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    outputs:
-      new_tag: ${{ steps.tag_version.outputs.new_tag }}
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+            output: watermark-linux-amd64
+          - goos: linux
+            goarch: arm64
+            output: watermark-linux-arm64
+          - goos: darwin
+            goarch: amd64
+            output: watermark-darwin-amd64
+          - goos: darwin
+            goarch: arm64
+            output: watermark-darwin-arm64
+
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -23,36 +35,35 @@ jobs:
           go-version-file: "go.mod"
           cache: true
 
-      - name: Install dependencies
-        run: go mod download
+      - name: Build ${{ matrix.output }}
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: go build -o ./build/${{ matrix.output }} .
 
-      - name: Build binaries
-        run: |
-          echo "Creating build directory..."
-          mkdir -p ./build
+      - name: Upload artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ matrix.output }}
+          path: ./build/${{ matrix.output }}
 
-          # Linux x64
-          echo "Building for Linux x64..."
-          GOOS=linux GOARCH=amd64 go build -o ./build/watermark-linux-amd64 .
-          echo "✓ Linux x64 build complete"
+  Tag-and-Release:
+    needs: Build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      new_tag: ${{ steps.tag_version.outputs.new_tag }}
 
-          # Linux ARM64
-          echo "Building for Linux ARM64..."
-          GOOS=linux GOARCH=arm64 go build -o ./build/watermark-linux-arm64 .
-          echo "✓ Linux ARM64 build complete"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
 
-          # macOS x64
-          echo "Building for macOS x64..."
-          GOOS=darwin GOARCH=amd64 go build -o ./build/watermark-darwin-amd64 .
-          echo "✓ macOS x64 build complete"
-
-          # macOS ARM64
-          echo "Building for macOS ARM64..."
-          GOOS=darwin GOARCH=arm64 go build -o ./build/watermark-darwin-arm64 .
-          echo "✓ macOS ARM64 build complete"
-
-          echo "All builds completed successfully!"
-          ls -la ./build/
+      - name: Download artifacts
+        uses: actions/download-artifact@v6
+        with:
+          path: ./build
+          merge-multiple: true
 
       - name: Bump version and push tag
         id: tag_version
@@ -75,20 +86,16 @@ jobs:
 
             ---
             Commit: ${{ github.sha }}
-          files: |
-            ./build/watermark-linux-amd64
-            ./build/watermark-linux-arm64
-            ./build/watermark-darwin-amd64
-            ./build/watermark-darwin-arm64
+          files: ./build/*
           draft: false
           prerelease: false
           make_latest: true
 
-  deploy-formula:
-    needs: build-and-release
-    if: ${{ needs.build-and-release.outputs.new_tag != '' }}
+  Deploy-Formula:
+    needs: Tag-and-Release
+    if: ${{ needs.Tag-and-Release.outputs.new_tag != '' }}
     uses: ./.github/workflows/brew.yml
     with:
-      version: ${{ needs.build-and-release.outputs.new_tag }}
+      version: ${{ needs.Tag-and-Release.outputs.new_tag }}
     secrets:
       HOMEBREW_TOKEN: ${{ secrets.HOMEBREW_TOKEN }}
