@@ -18,10 +18,6 @@ func logError(msg string) {
 	fmt.Fprintln(os.Stderr, tui.ErrStyle.Render("✗ "+msg))
 }
 
-func logInfo(msg string) {
-	fmt.Println(tui.InfoStyle.Render("  " + msg))
-}
-
 type args struct {
 	InputPath  string `arg:"-i,--input,required" help:"Path to the input file"`
 	Text       string `arg:"-t,--text,required" help:"Text to add as a watermark"`
