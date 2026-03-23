@@ -95,7 +95,5 @@ jobs:
         uses: geekyeggo/delete-artifact@v6
         with:
           name: |
-            watermark-linux-amd64
-            watermark-linux-arm64
             watermark-darwin-amd64
             watermark-darwin-arm64
