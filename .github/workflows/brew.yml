@@ -16,7 +16,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy-formula:
+  Deploy-Formula:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Get release tag
