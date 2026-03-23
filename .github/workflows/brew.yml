@@ -16,15 +16,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  deploy-formula:
-    runs-on: ubuntu-latest
+  Deploy-Formula:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Get release tag
         id: tag
         run: echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
 
       - name: Download darwin binaries
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           pattern: watermark-darwin-*
           merge-multiple: true
@@ -92,7 +92,7 @@ jobs:
           git push
 
       - name: Delete artifacts
-        uses: geekyeggo/delete-artifact@v5
+        uses: geekyeggo/delete-artifact@v6
         with:
           name: |
             watermark-linux-amd64
