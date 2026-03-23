@@ -9,21 +9,6 @@ on:
 jobs:
   Build:
     runs-on: blacksmith-4vcpu-ubuntu-2404
-    strategy:
-      matrix:
-        include:
-          - goos: linux
-            goarch: amd64
-            output: watermark-linux-amd64
-          - goos: linux
-            goarch: arm64
-            output: watermark-linux-arm64
-          - goos: darwin
-            goarch: amd64
-            output: watermark-darwin-amd64
-          - goos: darwin
-            goarch: arm64
-            output: watermark-darwin-arm64
 
     steps:
       - name: Checkout
@@ -35,17 +20,23 @@ jobs:
           go-version-file: "go.mod"
           cache: true
 
-      - name: Build ${{ matrix.output }}
-        env:
-          GOOS: ${{ matrix.goos }}
-          GOARCH: ${{ matrix.goarch }}
-        run: go build -o ./build/${{ matrix.output }} .
+      - name: Build all targets
+        run: |
+          echo "Building linux/amd64..."
+          GOOS=linux  GOARCH=amd64 go build -o ./build/watermark-linux-amd64  .
+          echo "Building linux/arm64..."
+          GOOS=linux  GOARCH=arm64 go build -o ./build/watermark-linux-arm64  .
+          echo "Building darwin/amd64..."
+          GOOS=darwin GOARCH=amd64 go build -o ./build/watermark-darwin-amd64 .
+          echo "Building darwin/arm64..."
+          GOOS=darwin GOARCH=arm64 go build -o ./build/watermark-darwin-arm64 .
+          echo "All targets built successfully"
 
-      - name: Upload artifact
+      - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ matrix.output }}
-          path: ./build/${{ matrix.output }}
+          name: builds
+          path: ./build/*
 
   Tag-and-Release:
     needs: Build
