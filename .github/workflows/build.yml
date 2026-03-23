@@ -9,6 +9,10 @@ on:
 jobs:
   Build:
     runs-on: blacksmith-4vcpu-ubuntu-2404
+    permissions:
+      contents: write
+    outputs:
+      new_tag: ${{ steps.tag_version.outputs.new_tag }}
 
     steps:
       - name: Checkout
@@ -31,30 +35,6 @@ jobs:
           echo "Building darwin/arm64..."
           GOOS=darwin GOARCH=arm64 go build -o ./build/watermark-darwin-arm64 .
           echo "All targets built successfully"
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v7
-        with:
-          name: builds
-          path: ./build/*
-
-  Tag-and-Release:
-    needs: Build
-    runs-on: blacksmith-4vcpu-ubuntu-2404
-    permissions:
-      contents: write
-    outputs:
-      new_tag: ${{ steps.tag_version.outputs.new_tag }}
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v8
-        with:
-          path: ./build
-          merge-multiple: true
 
       - name: Bump version and push tag
         id: tag_version
@@ -83,10 +63,10 @@ jobs:
           make_latest: true
 
   Deploy-Formula:
-    needs: Tag-and-Release
-    if: ${{ needs.Tag-and-Release.outputs.new_tag != '' }}
+    needs: Build
+    if: ${{ needs.Build.outputs.new_tag != '' }}
     uses: ./.github/workflows/brew.yml
     with:
-      version: ${{ needs.Tag-and-Release.outputs.new_tag }}
+      version: ${{ needs.Build.outputs.new_tag }}
     secrets:
       HOMEBREW_TOKEN: ${{ secrets.HOMEBREW_TOKEN }}
