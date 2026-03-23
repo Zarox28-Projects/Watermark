@@ -26,8 +26,8 @@ jobs:
       - name: Download darwin binaries
         uses: actions/download-artifact@v8
         with:
-          pattern: watermark-darwin-*
-          merge-multiple: true
+          name: watermark-darwin
+          path: .
 
       - name: Compute SHA256
         id: sha
